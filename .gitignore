@@ -10,6 +10,22 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
+/unity-env/Assets/ModularLowpolyStreetsFree/*
+/unity-env/Assets/POLYGON city pack/*
+/unity-env/Assets/TutorialInfo
+/unity-env/Assets/Urban American Assets/*
+/unity-env/Assets/Vehicle Physics Pro/*
+/unity-env/Library
+/unity-env/Packages
+/unity-env/ProjectSettings
+/unity-env/Temp
+/unity-env/UserSettings
+/unity-env/Logs
+
+*.meta
+
+.vscode
+
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
