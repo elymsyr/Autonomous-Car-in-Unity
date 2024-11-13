@@ -15,6 +15,8 @@
 /unity-env/Temp
 /unity-env/UserSettings
 /unity-env/Logs
+/unity-env/Assets/GearSystem
+/unity-env/Assets/TextMesh Pro
 
 *.meta
 

@@ -1,13 +1,18 @@
 using UnityEngine;
+using TMPro;
 
 public class InputDisplay : MonoBehaviour
 {
     public InputManager inputManager; // Reference to the InputManager script
-    private float throttleBarWidth = 200f; // Max width of the throttle bar
-    private float steerBarWidth = 200f;    // Max width of the steer bar
+    public CarController carController; // Reference to the InputManager script
+    private float barWidth = 100f; // Max width of the throttle bar
     private Texture2D fillTexture; // Texture for the filled bar
     private Texture2D centerLineTexture; // Texture for the center line
     private int mode;
+    public Transform rpmNeedle;
+    public Transform kmhNeedle;
+    public float NeedleRotationRPM = 126f;
+    public float NeedleRotationKMH = 138f;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,12 +37,13 @@ public class InputDisplay : MonoBehaviour
     void Update()
     {
         mode = inputManager.getMode;
-        // Ensure inputManager is assigned, or try to find it automatically
-        // if (inputManager == null)
-        // {
-        //     inputManager = Object.FindAnyObjectByType<InputManager>();
-        // }
+        GaugeUpdate();
+    }
 
+    void GaugeUpdate()
+    {
+        rpmNeedle.rotation = Quaternion.Euler(0, 0, (int)Mathf.Lerp(NeedleRotationRPM, -NeedleRotationRPM, carController.RPM / 7000));
+        kmhNeedle.rotation = Quaternion.Euler(0, 0, (int)Mathf.Lerp(NeedleRotationKMH, -NeedleRotationKMH, carController.KMH / 120));
     }
 
     // OnGUI is called for rendering and handling GUI events
@@ -73,31 +79,46 @@ public class InputDisplay : MonoBehaviour
         int screenHeight = Display.displays[displayIndex].systemHeight;
 
         // Draw the throttle bar background (border)
-        DrawBarBorder(new Rect(10, 10, throttleBarWidth, 30));
+        DrawBarBorder(new Rect(10, 10, barWidth, 20));
 
         // Draw the actual throttle bar based on the throttle value
-        float throttleFillWidth = inputManager.throttle * throttleBarWidth; // 0 to 1 fill
-        GUI.DrawTexture(new Rect(10, 10, throttleFillWidth, 30), fillTexture); // Filled bar
+        float throttleFillWidth = inputManager.throttle * barWidth; // 0 to 1 fill
+        GUI.DrawTexture(new Rect(10, 10, throttleFillWidth, 20), fillTexture); // Filled bar
+
+        // Draw the brake bar background (border)
+        DrawBarBorder(new Rect(10, 90, barWidth, 20));
+
+        // Draw the actual brake bar based on the brake value
+        float brakeFillWidth = inputManager.brake * barWidth; // 0 to 1 fill
+        GUI.DrawTexture(new Rect(10, 90, brakeFillWidth, 20), fillTexture); // Filled bar
+
+        // Draw the brake bar background (border)
+        DrawBarBorder(new Rect(10, 130, barWidth, 20));
+
+        // Draw the actual brake bar based on the brake value
+        float handbrakeFillWidth = inputManager.handbrake * barWidth; // 0 to 1 fill
+        GUI.DrawTexture(new Rect(10, 130, handbrakeFillWidth, 20), fillTexture); // Filled bar
+
 
         // Draw the steer bar background (border)
-        DrawBarBorder(new Rect(10, 50, steerBarWidth, 30));
+        DrawBarBorder(new Rect(10, 50, barWidth, 20));
 
         // Draw the center line of the steer bar (0 point)
-        float centerX = 10 + steerBarWidth / 2;
-        GUI.DrawTexture(new Rect(centerX, 50, 2, 30), centerLineTexture); // Center line
+        float centerX = 10 + barWidth / 2;
+        GUI.DrawTexture(new Rect(centerX, 50, 2, 20), centerLineTexture); // Center line
 
         // Handle negative steer (filling from center to the left)
         if (inputManager.steer < 0)
         {
-            float steerFillWidth = (-inputManager.steer) * (steerBarWidth / 2); // -1 to 0 fill to left
-            GUI.DrawTexture(new Rect(centerX - steerFillWidth, 50, steerFillWidth, 30), fillTexture);
+            float steerFillWidth = (-inputManager.steer) * (barWidth / 2); // -1 to 0 fill to left
+            GUI.DrawTexture(new Rect(centerX - steerFillWidth, 50, steerFillWidth, 20), fillTexture);
         }
 
         // Handle positive steer (filling from center to the right)
         if (inputManager.steer > 0)
         {
-            float steerFillWidth = inputManager.steer * (steerBarWidth / 2); // 0 to 1 fill to right
-            GUI.DrawTexture(new Rect(centerX, 50, steerFillWidth, 30), fillTexture);
+            float steerFillWidth = inputManager.steer * (barWidth / 2); // 0 to 1 fill to right
+            GUI.DrawTexture(new Rect(centerX, 50, steerFillWidth, 20), fillTexture);
         }
     }
 
@@ -128,12 +149,12 @@ public class InputDisplay : MonoBehaviour
 
         // Draw the letters at the top of the screen
         GUI.contentColor = rColor;
-        GUI.Label(new Rect(10, 100, 50, 40), "R", letterStyle);
+        GUI.Label(new Rect(10, 190, 50, 40), "R", letterStyle);
 
         GUI.contentColor = nColor;
-        GUI.Label(new Rect(60, 100, 50, 40), "N", letterStyle);
+        GUI.Label(new Rect(60, 190, 50, 40), "N", letterStyle);
 
         GUI.contentColor = aColor;
-        GUI.Label(new Rect(110, 100, 50, 40), "A", letterStyle);
+        GUI.Label(new Rect(110, 190, 50, 40), "A", letterStyle);
     }
 }

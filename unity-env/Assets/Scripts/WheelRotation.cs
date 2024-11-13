@@ -11,18 +11,13 @@ public class WheelRotation : MonoBehaviour
     {
         // Get the WheelCollider component attached to the same GameObject
         wheelCollider = this.GetComponent<WheelCollider>();
-        Debug.Log("Current Object: " + wheelCollider.name);
 
         // Get the MeshRenderer component from the first child of wheelCollider
         if (wheelCollider.transform.childCount > 0)
         {
             // Get the first child with MeshRenderer
             wheel = wheelCollider.transform.GetComponentInChildren<MeshRenderer>();
-            if (wheel != null)
-            {
-                Debug.Log("First Child MeshRenderer: " + wheel.name);
-            }
-            else
+            if (wheel == null)
             {
                 Debug.Log("No MeshRenderer found in the child objects.");
             }
