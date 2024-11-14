@@ -5,10 +5,12 @@ The project mainly aims to develop an autonomous car using a Unity 3D environmen
 
 ## Roadmap
 
-- [ ] Simple Unity 3D Environment
+- [x] Simple Unity 3D Environment
   - The environment should be suitable for object detection tasks.
   - Car controls must be realistic enough to simulate an autonomous vehicle.
   - Integration with stereo camera sensors for realistic input data.
+
+- [ ] Road Segmantation and Lane Detection for [Level 1](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle Assist
 
 - [ ] 3D Object Detection Model (KITTI Dataset)
   - Train a 3D object detection model using the KITTI dataset.
