@@ -10,7 +10,9 @@ The project mainly aims to develop an autonomous car using a Unity 3D environmen
   - Car controls must be realistic enough to simulate an autonomous vehicle.
   - Integration with stereo camera sensors for realistic input data.
 
-- [ ] Road Segmantation and Lane Detection for [Level 1](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle Assist
+- [ ] Road Segmantation and Lane Detection
+
+- [ ] Model Training with Reinforcement Learning for [Level 1](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle (Steering) Assist.
 
 - [ ] 3D Object Detection Model (KITTI Dataset)
   - Train a 3D object detection model using the KITTI dataset.
@@ -21,6 +23,16 @@ The project mainly aims to develop an autonomous car using a Unity 3D environmen
   - Implement a BEV Transformer System for 3D space prediction.
   - Utilize stereo vision to predict the 3D structure of the environment.
   - Explore combining the stereo vision system with more advanced models for enhanced accuracy.
+
+- [ ] [Level 2](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle Assist
+
+- [ ] Rule-based System Design for Realistic Traffic Ride
+
+- [ ] [Level 3](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle Assist
+
+- [ ] [Level 4](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle (Parking in Selected Parking Areas and Highway Riding) Assist
+
+- [ ] [Level 5](https://www.nhtsa.gov/sites/nhtsa.gov/files/2022-05/Level-of-Automation-052522-tag.pdf) Vehicle (Currently Dreaming) Assist
 
 ## Documentation
 
@@ -62,7 +74,8 @@ Please adhere to this project's [`CODE OF CONDUCT`](CODEOFCONDUCT.md).
 
 ## Acknowledgements
 
-Acknowledgements will be updated.
+- [Datasets](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d)
+- [CNN for Road Segmantation](https://www.kaggle.com/code/sakshaymahna/fully-convolutional-network)
 
 ## Appendix
 
