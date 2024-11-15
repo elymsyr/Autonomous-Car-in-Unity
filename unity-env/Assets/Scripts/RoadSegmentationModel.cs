@@ -1,113 +1,200 @@
 using UnityEngine;
-using Unity.Barracuda;
 using UnityEngine.UI;
+using System.IO;
+using TensorFlowLite;
+using System;
 
 public class InGameCameraSegmentation : MonoBehaviour
 {
-    public Camera inGameCamera;    // The in-game camera to capture the image
-    public RenderTexture renderTexture; // A RenderTexture to render the camera output
-    public RawImage outputImage;   // UI element to display the segmented output
-    public NNModel onnxModel;      // The ONNX model for segmentation
+    public Camera inGameCamera;
+    public RenderTexture renderTexture;
+    public RawImage outputImage;
+    public RawImage inputImageUI; 
+    public string modelFileName = "Models/RoadSegmentation.tflite";
 
-    private IWorker worker;
+    private Interpreter interpreter;
     private Texture2D cameraCaptureTexture;
     private Texture2D segmentedTexture;
 
-    private int inputWidth = 224;  // Adjust according to your ONNX model's input size
-    private int inputHeight = 224; // Adjust according to your ONNX model's input size
-    private int outputWidth = 224; // Adjust according to your ONNX model's output size
-    private int outputHeight = 224; // Adjust according to your ONNX model's output size
+    private int inputWidth = 128;
+    private int inputHeight = 128;
+    private int outputWidth = 128;
+    private int outputHeight = 128;
 
     void Start()
     {
-        // Initialize Barracuda with ONNX model
-        var model = ModelLoader.Load(onnxModel);
-        worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, model);
+        string modelPath = Path.Combine(Application.streamingAssetsPath, modelFileName);
+        byte[] modelData = FileUtil.LoadFile(modelPath);
 
-        // Create textures for capturing the camera image and for the segmented output
+        if (modelData == null || modelData.Length == 0)
+        {
+            Debug.LogError("Failed to load model data or model file is empty.");
+            return;
+        }
+        
+        Debug.Log("Model data successfully loaded. Size: " + modelData.Length + " bytes");
+
+        InterpreterOptions options = new InterpreterOptions();
+        interpreter = new Interpreter(modelData, options);
+        interpreter.AllocateTensors();
+
+        // Log tensor information for debugging
+        var inputTensorInfo = interpreter.GetInputTensorInfo(0);
+        var outputTensorInfo = interpreter.GetOutputTensorInfo(0);
+        Debug.Log($"Input tensor shape: {string.Join(",", inputTensorInfo.shape)}");
+        Debug.Log($"Output tensor shape: {string.Join(",", outputTensorInfo.shape)}");
+
         cameraCaptureTexture = new Texture2D(inputWidth, inputHeight, TextureFormat.RGB24, false);
         segmentedTexture = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
     }
 
     void Update()
     {
-        // Capture an image from the in-game camera
         CaptureCameraImage();
+        float[,,] inputTensor = PreprocessInput(cameraCaptureTexture);
+        
+        // Reshape the input tensor to match the model's expected input shape
+        float[] flattenedInput = new float[inputWidth * inputHeight * 3];
+        for (int y = 0; y < inputHeight; y++)
+        {
+            for (int x = 0; x < inputWidth; x++)
+            {
+                for (int c = 0; c < 3; c++)
+                {
+                    flattenedInput[(y * inputWidth * 3) + (x * 3) + c] = inputTensor[y, x, c];
+                }
+            }
+        }
 
-        // Preprocess the captured image and run inference on the ONNX model
-        Tensor inputTensor = PreprocessInput(cameraCaptureTexture);
-        worker.Execute(inputTensor);
-        Tensor outputTensor = worker.PeekOutput();
+        interpreter.SetInputTensorData(0, flattenedInput);
+        interpreter.Invoke();
 
-        // Postprocess the output and display the segmentation result
+        // Get the output tensor data as a flattened array
+        float[] flattenedOutput = new float[outputWidth * outputHeight];
+        interpreter.GetOutputTensorData(0, flattenedOutput);
+
+        // Reshape the output back to 2D
+        float[,,] outputTensor = new float[outputHeight, outputWidth, 1];
+        for (int y = 0; y < outputHeight; y++)
+        {
+            for (int x = 0; x < outputWidth; x++)
+            {
+                outputTensor[y, x, 0] = flattenedOutput[y * outputWidth + x];
+            }
+        }
+
         PostprocessOutput(outputTensor);
-
-        // Clean up tensors to prevent memory leaks
-        inputTensor.Dispose();
-        outputTensor.Dispose();
     }
 
     private void CaptureCameraImage()
     {
-        // Set the target texture of the in-game camera to the renderTexture
+        if (renderTexture == null)
+        {
+            Debug.LogError("RenderTexture is not assigned.");
+            return;
+        }
+
+        if (cameraCaptureTexture == null)
+        {
+            cameraCaptureTexture = new Texture2D(inputWidth, inputHeight, TextureFormat.RGB24, false);
+        }
+
         inGameCamera.targetTexture = renderTexture;
         inGameCamera.Render();
-
-        // Read the pixels from the RenderTexture into the cameraCaptureTexture
         RenderTexture.active = renderTexture;
-        cameraCaptureTexture.ReadPixels(new Rect(0, 0, inputWidth, inputHeight), 0, 0);
-        cameraCaptureTexture.Apply();
 
-        // Reset the target texture
+        cameraCaptureTexture = Resize(renderTexture, inputWidth, inputHeight);
+
         inGameCamera.targetTexture = null;
         RenderTexture.active = null;
+
+        if (inputImageUI != null)
+        {
+            inputImageUI.texture = cameraCaptureTexture;
+        }
     }
 
-    private Tensor PreprocessInput(Texture2D inputImage)
+    private Texture2D Resize(RenderTexture renderTexture, int targetX, int targetY)
     {
-        // Create a tensor with the correct dimensions for the ONNX model input
-        Tensor inputTensor = new Tensor(1, inputHeight, inputWidth, 3); // Assuming the input format is [1, H, W, C]
+        RenderTexture rt = new RenderTexture(targetX, targetY, 24);
+        RenderTexture.active = rt;
+        Graphics.Blit(renderTexture, rt);
 
-        // Resize and normalize the input image to match the ONNX model's input size
+        Texture2D result = new Texture2D(targetX, targetY);
+        result.ReadPixels(new Rect(0, 0, targetX, targetY), 0, 0);
+        result.Apply();
+
+        RenderTexture.active = null;
+        rt.Release();
+        Destroy(rt);
+
+        return result;
+    }
+
+    private float[,,] PreprocessInput(Texture2D inputImage)
+    {
+        // Create a float array to hold the normalized input image
+        float[,,] inputTensor = new float[inputHeight, inputWidth, 3];
+
+        // Resize and normalize the input image to match the TFLite model's input size
         Color[] pixels = inputImage.GetPixels();
         for (int y = 0; y < inputHeight; y++)
         {
             for (int x = 0; x < inputWidth; x++)
             {
                 Color pixel = pixels[y * inputWidth + x];
-                inputTensor[0, y, x, 0] = pixel.r; // Red channel
-                inputTensor[0, y, x, 1] = pixel.g; // Green channel
-                inputTensor[0, y, x, 2] = pixel.b; // Blue channel
+                // Normalize pixel values to range 0-1
+                inputTensor[y, x, 0] = pixel.r; // Red channel
+                inputTensor[y, x, 1] = pixel.g; // Green channel
+                inputTensor[y, x, 2] = pixel.b; // Blue channel
+                Debug.Log($"{inputTensor[y, x, 0]}  {inputTensor[y, x, 1]}  {inputTensor[y, x, 2]}");
             }
         }
+
+        // // Normalize the values (scale from 0-255 to 0-1)
+        // for (int y = 0; y < inputHeight; y++)
+        // {
+        //     for (int x = 0; x < inputWidth; x++)
+        //     {
+        //         inputTensor[y, x, 0] /= 255f; // Normalize Red channel
+        //         inputTensor[y, x, 1] /= 255f; // Normalize Green channel
+        //         inputTensor[y, x, 2] /= 255f; // Normalize Blue channel
+        //     }
+        // }
 
         return inputTensor;
     }
 
-    private void PostprocessOutput(Tensor outputTensor)
+    private void PostprocessOutput(float[,,] outputTensor)
     {
-        // Assuming the output is a segmentation mask with values between 0 and 1
         for (int y = 0; y < outputHeight; y++)
         {
             for (int x = 0; x < outputWidth; x++)
             {
-                // Get the segmentation value for each pixel
-                float segmentationValue = outputTensor[0, y, x, 0];
-
-                // Colorize the output (for example, green for road, red for non-road)
-                Color color = segmentationValue > 0.5f ? Color.green : Color.red;
+                // Apply sigmoid to each output value if it's not already a probability
+                float intensity = outputTensor[y, x, 0];  // Value between 0 and 1
+                Color color = new Color(intensity, intensity, intensity);  // Grayscale intensity
                 segmentedTexture.SetPixel(x, y, color);
             }
         }
 
-        // Apply the changes to the texture and display it on the UI
         segmentedTexture.Apply();
         outputImage.texture = segmentedTexture;
     }
 
+    private float Sigmoid(float x)
+    {
+        return 1f / (1f + Mathf.Exp(-x));
+    }
+
     private void OnDestroy()
     {
-        // Clean up the Barracuda worker
-        worker.Dispose();
+        interpreter?.Dispose();
+        
+        if (cameraCaptureTexture != null)
+            Destroy(cameraCaptureTexture);
+            
+        if (segmentedTexture != null)
+            Destroy(segmentedTexture);
     }
 }
