@@ -15,6 +15,7 @@ public class InGameCameraSegmentation : MonoBehaviour
     private Interpreter interpreter;
     private Texture2D cameraCaptureTexture;
     private Texture2D segmentedTexture;
+    private Texture2D segmentedTestTexture;
 
     private int inputWidth = 128;
     private int inputHeight = 128;
@@ -46,12 +47,28 @@ public class InGameCameraSegmentation : MonoBehaviour
 
         cameraCaptureTexture = new Texture2D(inputWidth, inputHeight, TextureFormat.RGB24, false);
         segmentedTexture = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
+        segmentedTestTexture = new Texture2D(outputWidth, outputHeight, TextureFormat.RGB24, false);
     }
 
     void Update()
     {
         CaptureCameraImage();
         float[,,] inputTensor = PreprocessInput(cameraCaptureTexture);
+
+        for (int y = 0; y < outputHeight; y++)
+        {
+            for (int x = 0; x < outputWidth; x++)
+            {
+                Color color = new Color(inputTensor[y, x, 0], inputTensor[y, x, 1], inputTensor[y, x, 2]);  // Grayscale intensity
+                segmentedTestTexture.SetPixel(x, y, color);
+            }
+        }
+
+        segmentedTestTexture.Apply();
+        if (inputImageUI != null)
+        {
+            inputImageUI.texture = segmentedTestTexture;
+        }
         
         // Reshape the input tensor to match the model's expected input shape
         float[] flattenedInput = new float[inputWidth * inputHeight * 3];
@@ -108,10 +125,6 @@ public class InGameCameraSegmentation : MonoBehaviour
         inGameCamera.targetTexture = null;
         RenderTexture.active = null;
 
-        if (inputImageUI != null)
-        {
-            inputImageUI.texture = cameraCaptureTexture;
-        }
     }
 
     private Texture2D Resize(RenderTexture renderTexture, int targetX, int targetY)

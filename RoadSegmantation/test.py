@@ -7,7 +7,7 @@ def weighted_img(img, initial_img, α=1., β=0.5, γ=0.):
     return cv2.addWeighted(initial_img, α, img, β, γ)
 
 # Function to process an individual image
-def process_image(model, interpreter, image):
+def process_image(interpreter, image):
     # Preprocess image
     input_details = interpreter.get_input_details()
     input_shape = input_details[0]['shape'][1:3]  # Model expects height, width
@@ -54,20 +54,20 @@ def process_image(model, interpreter, image):
     return final_image
 
 # Load the TFLite model
-model_path = "Assets/StreamingAssets/Models/RoadSegmentation.tflite"
+model_path = "unity-env/Assets/StreamingAssets/Models/RoadSegmentation.tflite"
 interpreter = tflite.Interpreter(model_path=model_path)
 
 # Allocate tensors (prepare the model for inference)
 interpreter.allocate_tensors()
 
 # Example image (replace with actual image)
-image = cv2.imread("/home/things/Documents/KITTI/RoadSegmantation/data_road/testing/image_2/umm_000093.png")  # Load your image here
+# image = cv2.imread("/home/things/Documents/KITTI/RoadSegmantation/data_road/testing/image_2/umm_000093.png")  # Load your image here
+image = cv2.imread("RoadSegmantation/test4.png")  # Load your image here
 
 # Process the image
-final_output = process_image(None, interpreter, image)
+final_output = process_image(interpreter, image)
 
 # Save or display the final image
-cv2.imwrite("path_to_save_final_image.jpg", final_output)
 cv2.imshow("Final Segmentation", final_output)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
