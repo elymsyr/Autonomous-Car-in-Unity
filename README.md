@@ -40,7 +40,7 @@ See the detailed [`documentation`](documentaion.html).
 
 ## Notes
 
-See my [`notes`](https://www.notion.so/elymsyr0000/autonomous-systems-python-13652999cef8802a943ae7a23eb94d25?pvs=4).
+See my [`notes`](https://elymsyr0000.notion.site/autonomous-systems-python-13652999cef8802a943ae7a23eb94d25?pvs=4).
 
 ## License
 

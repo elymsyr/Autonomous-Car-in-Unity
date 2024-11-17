@@ -59,7 +59,7 @@ def handle_client_connection(client_socket, client_address, camera_id):
         cv2.destroyWindow(f"Camera {camera_id}")
 
 def start_server():
-    camera_ports = [3010, 3020, 3030]
+    camera_ports = [3010]
     camera_threads = []
 
     for camera_id, port in enumerate(camera_ports):

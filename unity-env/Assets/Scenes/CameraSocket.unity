@@ -1270,6 +1270,7 @@ MonoBehaviour:
   renderTexture: {fileID: 0}
   serverPort: 3010
   serverIP: 127.0.0.1
+  renderDim: {x: 360, y: 360, z: 3}
 --- !u!1 &426086531
 GameObject:
   m_ObjectHideFlags: 0

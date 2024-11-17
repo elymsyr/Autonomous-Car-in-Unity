@@ -9,7 +9,7 @@ public class CameraImageSender : MonoBehaviour
     public RenderTexture renderTexture;
     public int serverPort = 3010;
     public string serverIP = "127.0.0.1";
-
+    public Vector3Int renderDim = new Vector3Int(360, 360, 3);
     private Texture2D cameraCaptureTexture;
     private TcpClient client;
     private NetworkStream stream;
@@ -21,7 +21,7 @@ public class CameraImageSender : MonoBehaviour
 
         if (renderTexture == null)
         {
-            renderTexture = new RenderTexture(480, 480, 24);
+            renderTexture = new RenderTexture(renderDim.x, renderDim.y, renderDim.z);
             cam.targetTexture = renderTexture;
         }
 
@@ -75,13 +75,12 @@ public class CameraImageSender : MonoBehaviour
         }
         try
         {
-
-            Debug.Log("Sending image data of size: " + imageData.Length);
+            // Debug.Log("Sending image data of size: " + imageData.Length);
             byte[] sizeData = BitConverter.GetBytes(imageData.Length);
             stream.Write(sizeData, 0, sizeData.Length);
             stream.Write(imageData, 0, imageData.Length);
             stream.Flush();
-            Debug.Log("Image data sent to server.");
+            // Debug.Log("Image data sent to server.");
         }
         catch (Exception e)
         {
