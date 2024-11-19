@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(InputManager))]
@@ -29,6 +26,8 @@ public class CarController : MonoBehaviour
     public float differentialRatio;
     public float currentTorque;
     public AnimationCurve hpToRPMCurve;
+    public bool absEnabled = true;
+    public float absThreshold = 0.2f;
 
     void Start()
     {
@@ -70,17 +69,31 @@ public class CarController : MonoBehaviour
 
     void ApplyBrake()
     {
-        if (inputManager.handbrake > 0){
+        if (inputManager.handbrake > 0)
+        {
             colliders.FRWheel.brakeTorque = inputManager.handbrake * brakePower;
             colliders.FLWheel.brakeTorque = inputManager.handbrake * brakePower;
             colliders.RRWheel.brakeTorque = inputManager.handbrake * brakePower;
             colliders.RLWheel.brakeTorque = inputManager.handbrake * brakePower;
         }
-        else{
-            colliders.FRWheel.brakeTorque = inputManager.brake * brakePower* 0.8f;
-            colliders.FLWheel.brakeTorque = inputManager.brake * brakePower * 0.8f;
-            colliders.RRWheel.brakeTorque = inputManager.brake * brakePower * 0.5f;
-            colliders.RLWheel.brakeTorque = inputManager.brake * brakePower *0.5f;
+        else
+        {
+            ApplyABS(colliders.FRWheel, inputManager.brake, brakePower * 0.9f);
+            ApplyABS(colliders.FLWheel, inputManager.brake, brakePower * 0.9f);
+            ApplyABS(colliders.RRWheel, inputManager.brake, brakePower * 0.7f);
+            ApplyABS(colliders.RLWheel, inputManager.brake, brakePower * 0.7f);
+        }
+    }
+
+    void ApplyABS(WheelCollider wheel, float brakeInput, float brakeTorque)
+    {
+        if (Mathf.Abs(RPM) < absThreshold)
+        {
+            wheel.brakeTorque = 0f;
+        }
+        else
+        {
+            wheel.brakeTorque = brakeInput * brakeTorque;
         }
     }
 

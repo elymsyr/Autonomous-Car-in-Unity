@@ -7,11 +7,11 @@ public class CameraController : MonoBehaviour
     public Camera leftCamera;
     public Camera rightCamera;
     public Camera insideCamera;
-    private Vector3 topCameraLocalOffset = new Vector3(0f, 5f, -10f);
-    private Vector3 leftOffset = new Vector3(-0.7f, 0.5f, 1.5f);
-    private Vector3 rightOffset = new Vector3(0.7f, 0.5f, 1.5f);
-    private Vector3 insideOffset = new Vector3(-0.39f,0.51f,0.08f);
-    private Vector3 insideRotationOffset = new Vector3(10.12f, 4.368f, 0.1f);
+    public Vector3 topCameraLocalOffset = new Vector3(0f, 5f, -10f);
+    public Vector3 leftOffset = new Vector3(-0.7f, 0.5f, 1.5f);
+    public Vector3 rightOffset = new Vector3(0.7f, 0.5f, 1.5f);
+    public Vector3 insideOffset = new Vector3(-0.39f,0.51f,0.08f);
+    public Vector3 insideRotationOffset = new Vector3(10.12f, 4.368f, 0.1f);
     
     void Update()
     {
